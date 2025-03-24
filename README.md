@@ -20,5 +20,5 @@ Installing
 
 Usage: 
 1) Update the file path in the script to point to your PDF: 
-   2) pdf_file_path = "C:\\Your\\Path\\Here\\filename.pdf"
+   * pdf_file_path = "C:\\Your\\Path\\Here\\filename.pdf"
 3) Run the script from your terminal or command prompt
