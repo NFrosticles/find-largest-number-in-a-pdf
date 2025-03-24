@@ -12,11 +12,11 @@ Getting Started
 
 Prerequisites
 * Python 3 
-* PyPDF2 
+* PyMuPDF 
 
 Installing 
-* The only dependency required is PyPDF2
-  * pip install PyPDF2
+* The only dependency required is PyMuPDF
+  * pip install PyMuPDF
 
 Usage: 
 1) Update the file path in the script to point to your PDF: 

@@ -1,4 +1,4 @@
-import PyPDF2
+import pymupdf
 import re
 
 
@@ -6,10 +6,10 @@ def extract_text_from_pdf(pdf_path):
     """Extracts and returns all combined text from a given PDF file."""
     text = ""
     try:
-        with open(pdf_path, "rb") as file:
-            reader = PyPDF2.PdfReader(file)
-            for page in reader.pages:
-                text += page.extract_text() + "\n"
+        with pymupdf.open(pdf_path) as pdf:
+            for page_num in range(len(pdf)):
+                page = pdf[page_num]
+                text += page.get_text() + "\n"
             return text
     except Exception as e:
         print(f"Error extracting text from PDF: {e}")
@@ -40,10 +40,13 @@ def extract_largest_number(text):
     }
 
     for num_str, scale in pattern.findall(text):
-        num = float(num_str.replace(",", ""))
-        if scale:
-            num *= scale_factors.get(scale.lower(), 1)
-        numbers.append(num)
+        try:
+            num = float(num_str.replace(",", ""))
+            if scale:
+                num *= scale_factors.get(scale.lower(), 1)
+            numbers.append(num)
+        except (ValueError, KeyError) as e:
+            print(f"Skipping invalid entry: {num_str}, Error: {e}")
 
     return numbers
 
@@ -68,7 +71,8 @@ def extract_largest_numerical_value(text):
         try:
             num = float(num_str.replace(",", ""))
             numbers.append(num)
-        except ValueError:
+        except (ValueError, KeyError) as e:
+            print(f"Skipping invalid entry: {num_str}, Error: {e}")
             continue
     return numbers
 
@@ -110,5 +114,5 @@ def main(pdf_path):
 
 
 if __name__ == "__main__":
-    pdf_file_path = "C:\\Your\\File\\Path\\yourfilename.pdf"  # Update this to your actual file path
+    pdf_file_path = "C:\\Users\\nfros\\Documents\\FY25_Air_Force_Working_Capital_Fund.pdf"  # Update this to your actual file path
     main(pdf_file_path)
