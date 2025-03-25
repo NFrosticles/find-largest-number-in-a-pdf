@@ -19,8 +19,6 @@ Installing
   * pip install PyMuPDF
 
 Usage: 
-1) Clone the repository
-   * git clone https://github.com/NFrosticles/find-largest-number-in-a-pdf.git
 1) Update the file path in the script to point to your PDF: 
-   * pdf_file_path = "C:\\Your\\Path\\Here\\filename.pdf"
+   2) pdf_file_path = "C:\\Your\\Path\\Here\\filename.pdf"
 3) Run the script from your terminal or command prompt
