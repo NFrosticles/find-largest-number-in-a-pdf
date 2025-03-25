@@ -17,38 +17,51 @@ def extract_text_from_pdf(pdf_path):
 
 
 def extract_largest_number(text):
-    """Finds the largest number in the text, considering scaling factors."""
+    """Finds the largest number in the text, considering explicit and contextual scaling factors."""
 
-    # This regex matches numerical values with optional scaling keywords, such as:
-    # - Plain numbers (e.g., "123", "1,234", "123.45")
-    # - Numbers with scaling factors (e.g., "1,000 thousand", "12.3 million")
-    # It has two capturing groups:
-    # 1. (\d{1,3}(?:,\d{3})*(?:\.\d+)?): Captures the numeric portion, including:
-    #    - Comma-separated numbers (e.g., "1,000")
-    #    - Decimal numbers (e.g., "123.45")
-    #    - Whole numbers (e.g., "123")
-    # 2. (hundred|thousand|million|billion)?: Captures optional scaling factors
-    #    (e.g., "thousand", "million"), making this group optional.
-    pattern = re.compile(r"(\d{1,3}(?:,\d{3})*(?:\.\d+)?)\s*(hundred|thousand|million|billion)?", re.IGNORECASE)
+    # Regex to match numbers with optional scaling words like million/billion
+    pattern = re.compile(r'\$?\(?\d{1,3}(?:,\d{3})*(?:\.\d+)?\)?(?:\s*(million|billion|thousand|hundred))?', re.IGNORECASE)
 
-    numbers = []
     scale_factors = {
-        "hundred": 100,
-        "thousand": 1_000,
-        "million": 1_000_000,
-        "billion": 1_000_000_000
+        "hundred": 1e2,
+        "thousand": 1e3,
+        "million": 1e6,
+        "billion": 1e9
     }
 
-    for num_str, scale in pattern.findall(text):
-        try:
-            num = float(num_str.replace(",", ""))
-            if scale:
-                num *= scale_factors.get(scale.lower(), 1)
-            numbers.append(num)
-        except (ValueError, KeyError) as e:
-            print(f"Skipping invalid entry: {num_str}, Error: {e}")
+    max_value = 0
 
-    return numbers
+    # Split text into sections to check for contextual headers to handle financial charts
+    for section in re.split(r'\n\s*\n', text):
+        section_scale = 1  # Default scale
+        if re.search(r'\(.*?\bMillions\b.*?\)', section, re.IGNORECASE):
+            section_scale = 1e6
+        elif re.search(r'\(.*?\bBillions\b.*?\)', section, re.IGNORECASE):
+            section_scale = 1e9
+        elif re.search(r'\(.*?\bThousands\b.*?\)', section, re.IGNORECASE):
+            section_scale = 1e3
+
+        for match in pattern.finditer(section):
+            full = match.group(0)
+            scale_word = match.group(1)
+
+            # Clean number string (remove $, commas, parentheses)
+            num_str = re.sub(r'[^\d\.\-]', '', full.replace(",", ""))
+
+            try:
+                num = float(num_str)
+                # User explicit scaling word or chart scaling (Dollars in Millions)
+                if scale_word:
+                    num *= scale_factors.get(scale_word.lower(), 1)
+                else:
+                    num *= section_scale
+                if max_value is None or num > max_value:
+                    max_value = num
+            except Exception as e:
+                print(f"Skipping invalid entry: {full}, Error: {e}")
+                continue
+
+    return [max_value]
 
 
 def extract_largest_numerical_value(text):
@@ -114,5 +127,5 @@ def main(pdf_path):
 
 
 if __name__ == "__main__":
-    pdf_file_path = "C:\\Your\\File\\Path\\yourfilename.pdf"  # Update this to your actual file path
+    pdf_file_path = "C:\\Users\\nfros\\Documents\\FY25_Air_Force_Working_Capital_Fund.pdf"  # Update this to your actual file path
     main(pdf_file_path)
